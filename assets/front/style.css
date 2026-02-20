@@ -1,0 +1,797 @@
+:root{
+	--card: #ffffff;
+	--accent: #2563eb;
+	--muted: #64748b;
+	--glass: rgba(0,0,0,0.04);
+	--text: #0f1724;
+	--logo-bg: linear-gradient(135deg,var(--accent),#7c3aed);
+	--card-shadow: 0 6px 18px rgba(2,6,23,0.04);
+	--input-border: rgba(15,23,36,0.06);
+	--toggle-track: #e6eef8;
+	--toggle-track-active: #111111;
+	--toggle-knob: #ffffff;
+	--toggle-knob-active: #0b1220;
+	--toggle-icon: #0b1220;
+	--toggle-icon-active: #ffd66b;
+	--player-accent: #000000;
+	--timeline-border: #d1d5db;
+	--footer-hr: rgba(0,0,0,0.06);
+}
+
+body.dark{
+	--bg: #000000;
+	--card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+	--accent: #9ca3af;
+	--muted: #9aa0a6;
+	--glass: #1b1b1b;
+	--text: #e6e6e6;
+	--logo-bg: linear-gradient(135deg,#111111,#333333);
+	--card-shadow: 0 6px 18px rgba(0,0,0,0.6);
+	--input-border: #333333;
+	--toggle-track: #222222;
+	--toggle-track-active: #111111;
+	--toggle-knob: #ffffff;
+	--toggle-knob-active: #ffffff;
+	--toggle-icon: #e6e6e6;
+	--toggle-icon-active: #2563eb;
+	--player-accent: #ffffff;
+	--timeline-border: #333333;
+	--footer-hr: #333333;
+}
+.title-row, .flex-between { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+/* --- Theme toggle styles: compact track and knob with icons --- */
+.theme-toggle{position: relative;display: inline-flex;align-items: center;justify-content: center;width: 48px;
+	height: 28px;padding: 4px;border-radius: 999px;background: var(--toggle-track);border: 0;cursor: pointer;
+	transition: background .25s ease;color: var(--toggle-icon);overflow: visible;}
+
+/* -- full-outline that appears around the whole button on hover/focus -- */
+.theme-toggle::after{content: "";position: absolute;inset: 0; border-radius: 999px;pointer-events: none;border: 2px solid var(--accent);
+  transform: scale(0.88);opacity: 0;transition: transform .18s ease, opacity .18s ease, border-color .18s ease;box-shadow: 0 6px 18px rgba(2,6,23,0.06);}
+/* show outline on hover / focus / active */
+.theme-toggle:hover::after,
+.theme-toggle:focus::after,
+.theme-toggle:active::after{transform: scale(1);opacity: 1;}
+
+/* knob as a real element */
+.theme-toggle .knob{position: absolute;left: 4px;top: 4px;width: 20px;height: 20px;border-radius: 50%;background: var(--toggle-knob);
+	box-shadow: 0 2px 6px rgba(2,6,23,0.12);transition: transform .22s cubic-bezier(.2,.8,.2,1), background .2s;display: inline-flex;
+	align-items: center;justify-content: center;overflow: hidden;z-index: 2;}
+/* pressed (dark) state moves knob */
+.theme-toggle[aria-pressed="true"]{
+	background: #374151;
+	color: var(--toggle-icon-active);
+}
+/* make the outline color adapt when pressed */
+.theme-toggle[aria-pressed="true"]::after{
+  border-color: var(--toggle-icon-active);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+}
+
+.theme-toggle[aria-pressed="true"] .knob{
+	transform: translateX(20px);
+	background: var(--toggle-knob-active);
+}
+
+/* icons inside knob */
+.theme-toggle .knob i{
+	font-size:10px;
+	line-height:1;
+	display:block;
+	position:absolute;
+	top:50%;
+	left:50%;
+	transform:translate(-50%,-50%);
+	transition:opacity .18s ease, transform .18s ease;
+	pointer-events:none;
+}
+
+/* sun / moon visibility toggles */
+.theme-toggle .knob .bi-sun-fill{ opacity:1; transform:translate(-50%,-50%) scale(1); color:#6b7280; }
+.theme-toggle[aria-pressed="true"] .knob .bi-sun-fill{ opacity:0; transform:translate(-50%,-50%) scale(.8); }
+.theme-toggle .knob .bi-moon-fill{ opacity:0; transform:translate(-50%,-50%) scale(.8); color:#dbe7f5; }
+.theme-toggle[aria-pressed="true"] .knob .bi-moon-fill{ opacity:1; transform:translate(-50%,-50%) scale(1); color:#6b7280; }
+
+/* ensure headings use theme text color */
+h1{ color: var(--text); }
+
+/* Use theme variables for base layout so light/dark work consistently */
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background: var(--bg);
+  color: var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding:18px 16px;
+}
+
+@media (min-width:920px){
+  body { padding:40px 24px; }
+
+  /* reduce main horizontal gap between columns to tighten center space */
+  .hero { gap: 12px; } /* was 20px */
+
+  /* nudge left column inner content slightly so playlist aligns flush to the right */
+  .left-col { padding-right: 6px; }
+
+  /* push playlist box to the right inside the left column and add right padding */
+  .left-col .playlist-box {
+    margin-left: auto;
+    padding-right: 12px;
+    box-sizing: border-box;
+  }
+}
+
+.wrap{width:100%;max-width:920px; margin-bottom:20px;}
+.hero{
+  padding:20px;
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  margin-top: 8px;
+}
+.photo{width:290px;height:210px;border-radius:14px;overflow:hidden;flex:0 0 240px;display:flex;align-items:center;justify-content:center;background:transparent}
+.photo img{max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;background:transparent}
+
+/* new: left column wrapper to stack photo and the empty left container */
+.left-col{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  flex:0 0 240px; 
+  min-width:240px;
+}
+
+.info{flex:1;min-width:260px}
+h1{margin:0 0 6px 0;font-size:28px;color:var(--text)}
+p.lead{margin:0 0 10px 0;color:var(--muted)}
+.countdown{display:flex;gap:10px;margin:12px 0}
+.countdown>div{background:var(--glass);padding:10px 12px;border-radius:10px;min-width:68px;text-align:center}
+.countdown .num{font-size:20px;font-weight:700}
+.controls{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+button, input[type="submit"]{background:var(--accent);border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+.form{margin-top:18px;background:var(--card);padding:14px;border-radius:10px;box-shadow:var(--card-shadow)}
+input[type="text"], textarea{width:100%;padding:8px;border-radius:8px;border:1px solid var(--input-border);background:transparent;color:inherit;resize:vertical}
+.messages{margin-top:16px;max-height: none;overflow: visible;padding:12px 8px;border: 0.5px solid var(--timeline-border); /* thinner neutral grey */border-radius:10px;background:var(--card)}
+.msg{
+  padding:10px;
+  border-radius:8px;
+  background: var(--card);
+  margin-bottom:8px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  border: 1px solid var(--input-border);
+  box-shadow: var(--card-shadow);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+/* subtle lift on hover for affordance upppp */
+.timeline-container, .personal-message-container, .timeline-simple {
+  transition: all 0.3s ease;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  /* stronger, consistent border so the simple timeline is visible */
+  border: 1px solid var(--timeline-border);
+  background: var(--card); /* ensure contrast with surrounding area */
+  margin-top: 10px;
+}
+
+.timeline-simple:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+}
+
+/* Prevent the left container from lifting on hover */
+.timeline-container.left:hover {
+  transform: none; /* no translateY */
+  box-shadow: var(--card-shadow); /* keep original shadow, not the hover shadow */
+}
+
+/* Dark mode: ensure message border/background use dark overrides */
+body.dark .msg{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+.msg-icon{width:40px;height:40px;border-radius:8px;background:rgba(255,107,129,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent);flex:0 0 40px}
+.msg-body{flex:1;min-width:0}
+.msg .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+.msg .text{white-space:pre-wrap}
+.footer{margin-top:14px;font-size:13px;color:var(--muted);width:100%;text-align:center;padding:16px 0}
+.footer-inner{width:100%;max-width:920px;margin:0 auto;padding:0 12px;box-sizing:border-box;text-align:center}
+@media (max-width:640px){ .hero{flex-direction:column;align-items:stretch} .photo{width:100%;height:220px} .wrap{margin-bottom:20px} }
+
+@media (max-width:920px){
+  .messages-row{ flex-direction:column; }
+  .left-panel, .right-panel{ flex:1 1 auto; min-width:0; }
+  .info .playlist-box {
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  /* new: reduce overall wrap width when layout stacks to keep content narrower on small screens */
+  .wrap{
+    max-width: 560px; 
+    padding-left: 12px;
+    padding-right: 12px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* left column becomes full-width and can shrink when stacked */
+  .left-col{
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+  }
+  /* compact the photo and playlist UI for stacked layout */
+  .photo{
+    width: 100%;
+    height: 200px; 
+    flex: 0 0 auto;
+    border-radius: 12px;
+  }
+  .playlist-box { padding: 8px; }
+  .playlist .track { padding: 6px; gap: 6px; }
+  .track-index { width: 24px; height: 24px; font-size: 13px; }
+  .track-title { font-size: 13px; }
+  /* slightly smaller player controls on narrow screens */
+  .play-toggle { width: 60px; height: 60px; font-size: 24px; }
+  .center-controls .icon-btn { width: 48px; height: 48px; }
+  /* keep playlist box full width inside .info when moved by JS */
+  .info .playlist-box { max-width: 100%; box-sizing: border-box; }
+
+}
+
+/* container to put countdown and cake side-by-side */
+.count-cake-row{display:flex;align-items:center;gap:35px;margin-top: -20px;margin-bottom: -20px;}
+@media(max-width:640px){ .count-cake-row{flex-direction:column-reverse;gap:10px;} }
+
+/* cake sizing */
+.cake-wrap{width:140px;flex:0 0 140px;display:flex;align-items:center;justify-content:center;}
+.cake-svg{width:100%;height:auto;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.12));}
+
+/* flame animation */
+.flame{transform-origin:60px 18px;animation:flicker 250ms infinite ease-in-out alternate;}
+@keyframes flicker{
+  from{transform:translateY(0) scale(1);opacity:1;}
+  to{transform:translateY(-1.5px) scale(0.95);opacity:0.9;}
+}
+.cake-wrap[role="img"]{outline: none;}
+
+/* smoke puff animation (for when the candle is blown out) */
+@keyframes puff {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-10px) scale(0.8); opacity: 0; }
+}
+.cake-smoke {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: puff 2s forwards;
+}
+
+canvas#confetti{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.icon-spacing { margin-right: 6px; margin-left: 6px;}
+
+.messages{
+  margin-top:16px;
+  max-height: none;
+  overflow: visible;
+  padding:12px 8px;
+  /* use same shared border for consistency */
+  border: 0.5px solid var(--timeline-border)  ; /* was: #d1d5db */
+  border-radius:10px;
+  background:var(--card);
+}
+
+/* make header split between title and the view control */
+.messages-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 8px;
+  margin-bottom:8px;
+  border-radius:6px;
+  font-size: 18px;
+}
+
+/* small link-like button for "View all" */
+.view-all{
+  background:transparent;
+  border:0;
+  cursor:pointer;
+  font-size:12px;
+  padding:6px;
+  border-radius:6px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration: none;
+  color:var(--muted);
+}
+
+/* back button specific tweaks (uses .view-all base styles) */
+.back-btn { 
+  padding:6px 10px;
+  background: transparent;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap:8px;
+  border-radius:8px;
+}
+
+/* text in the back button */
+.back-text {
+  display: inline-block;
+  font-size:14px;
+  line-height:1;
+  color:var(--text);
+}
+
+/* icon inside the button (slightly smaller and muted) */
+.view-all .view-all-icon{
+  font-size:16px;
+  line-height:1;
+  color:var(--muted);
+}
+
+/* compact icon-only variant (single button) */
+.view-all.icon-only{
+  padding:6px;
+  width:36px;
+  height:36px;
+  justify-content:center;
+  border-radius:8px;
+  background: rgba(0,0,0,0.02);
+}
+
+/* compact page/header styles */
+.messages-page {
+  /* slightly reduced vertical padding */
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* header above the messages list on the "all messages" page */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  /* removed large fixed top margin to make layout responsive */
+  margin-top: 0;
+  gap: 8px;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-title {
+  margin: 0 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color:var(--text);
+}
+
+.page-meta { font-size: 13px; color:var(--muted); }
+.page-title { font-weight: bold; font-size: 1.5rem; }
+
+/* Footer styling: thin horizontal rule and centered muted copyright */
+.site-footer {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  padding: 16px 0;
+  margin-top: 14px;
+}
+
+/* constrain footer content to same max-width as .wrap and align left within it */
+.footer-inner {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 12px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* horizontal rule that matches theme and aligns with .wrap max-width */
+.footer-hr {
+  border: 0;
+  height: 1px;
+  background: var(--footer-hr);
+  margin: 0 0 20px 0;
+  width: 100%;
+}
+
+/* footer text: add vertical padding to create space above/below */
+.footer-text {
+  font-size: .9rem;
+  line-height: 1;
+  padding: 15px 0;
+}
+
+/* Dark mode tweaks for components that need explicit overrides */
+body.dark .messages{ 
+  border: 0.5px solid var(--timeline-border);
+}
+body.dark .countdown>div{ background: var(--glass)}
+body.dark button, body.dark input[type="submit"]{ color:#fff; }
+
+/* two-column messages layout */
+.messages-row{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  margin-top:10px;
+}
+/* left panel narrower, right panel wider */
+.left-panel{ flex:0 0 38%; min-width:220px; }
+.right-panel{ flex:1 1 62%; min-width:300px; }
+
+/* ensure left box uses same visual treatment */
+.messagescontainer.left{
+  transition: all 0.3s ease;
+  padding: 10px;
+  border-radius:8px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--timeline-border);
+  background: var(--card);
+}
+
+/* ensure individual tracks lift on hover/focus instead of the whole left container */
+.playlist .track {
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.playlist .track:not(.placeholder):hover,
+.playlist .track:not(.placeholder):focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+  z-index: 2;
+}
+
+/* responsive: stack columns on narrow screens */
+@media (max-width:920px){
+  .messages-row{ flex-direction:column; }
+  .left-panel, .right-panel{ flex:1 1 auto; min-width:0; }
+
+  /* ensure playlist gets some bottom spacing when placed above the timeline inside .info */
+  .info .playlist-box {
+    margin-bottom: 12px;
+    width: 100%;
+  }
+
+  /* new: reduce overall wrap width when layout stacks to keep content narrower on small screens */
+  .wrap{
+    max-width: 560px; /* reduce from 920 to a more compact width */
+    padding-left: 12px;
+    padding-right: 12px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* left column becomes full-width and can shrink when stacked */
+  .left-col{
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+  }
+
+  /* compact the photo and playlist UI for stacked layout */
+  .photo{
+    width: 100%;
+    height: 200px; /* slightly smaller than desktop card */
+    flex: 0 0 auto;
+    border-radius: 12px;
+  }
+
+  .playlist-box { padding: 8px; }
+  .playlist .track { padding: 6px; gap: 6px; }
+  .track-index { width: 24px; height: 24px; font-size: 13px; }
+  .track-title { font-size: 13px; }
+  .play-toggle { width: 60px; height: 60px; font-size: 24px; }
+  .center-controls .icon-btn { width: 48px; height: 48px; }
+  .info .playlist-box { max-width: 100%; box-sizing: border-box; }
+
+}
+@media (min-width:920px){
+  /* reduce main horizontal gap between columns to tighten center space */
+  .hero { gap: 30px; } /* was 20px */
+
+  /* nudge left column inner content slightly so playlist aligns flush to the right */
+  .left-col { padding-right: 17px; }
+
+  /* push playlist box to the right inside the left column and add right padding */
+  .left-col .playlist-box {
+    margin-left: auto;
+    padding-right: 12px;
+    box-sizing: border-box;
+  }
+}
+
+/* Ensure each message inside message lists/containers has a visible border
+   Use timeline border variable for consistent contrast across themes */
+.messages .msg,
+.timeline-container .msg,
+.timeline-simple .msg {
+  border: 1px solid var(--timeline-border);
+}
+
+/* Slightly strengthen the hover state while keeping the same border */
+.timeline-container .msg:hover,
+.timeline-simple .msg:hover,
+.messages .msg:hover {
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Dark mode: make sure message borders use the dark timeline variable */
+body.dark .messages .msg,
+body.dark .timeline-container .msg,
+body.dark .timeline-simple .msg {
+  border: 1px solid var(--timeline-border);
+}
+
+/*upppp personal container messages*/
+/* Ensure personal messages inside the single-row hero sit flush under the hero */
+.hero.single-row {
+  margin-top: 0;
+  padding-top: 0;
+}
+.hero.single-row .info {
+  margin-top: 0;
+  padding-top: 0;
+}
+.hero.single-row .personal-message-container {
+  margin-top: -10px;   /* keep no extra margin above the block */
+  /* keep horizontal padding from the base rule; add vertical padding */
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+/* Compact playlist styles */
+.playlist-box .playlist-empty{ font-size:12px;color:var(--muted); margin-bottom:8px; }
+.playlist{ display:flex; flex-direction:column; gap:8px; }
+.playlist .track{
+  display:flex;
+  gap:8px;
+  padding:8px;
+  border-radius:8px;
+  align-items:center;
+  cursor:pointer;
+  background: var(--card);
+  border: 1px solid var(--input-border);
+}
+.playlist .track.placeholder{ opacity:0.45; cursor:default; }
+.playlist .track.active{ box-shadow: 0 6px 18px rgba(2,6,23,0.04); border-color: var(--player-accent); }
+.track-index{ width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:var(--glass); color:var(--muted); font-weight:600; }
+
+/* default: clip long titles with ellipsis when not moving */
+.track-meta{ display:flex; flex-direction:column; min-width:0; overflow: hidden; }
+.track-title{
+  font-weight:600;
+  color:var(--text);
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:block;
+}
+
+/* marquee animation: move from right to left continuously */
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(-100%); }
+}
+
+.playlist .track.playing .track-title {
+  text-overflow:clip;      
+  overflow:visible;         
+  display:inline-block;     
+  will-change: transform;
+  animation: marquee var(--marquee-duration, 10s) linear infinite;
+  animation-play-state: running;
+}
+
+/* keep hover behavior non-animating (still shows ellipsis) */
+.playlist .track:not(.playing):hover .track-title {
+  text-overflow:ellipsis;
+  overflow:hidden;
+  display:block;
+}
+
+/* artist / singer line under the title — always muted, no marquee/animation */
+.track-artist {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* ensure the artist line is not affected by the playing-track marquee */
+.playlist .track.playing .track-artist,
+.playlist .track.playing .track-artist * {
+  animation: none !important;
+  -webkit-animation: none !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Player UI: progress + large central controls */
+.player-ui { display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+.player-ui .progress-row { display:flex; align-items:center; gap:10px; margin-top:16px; }
+@media (min-width:920px) {
+  .player-ui .progress-row { margin-top:20px; }
+}
+.player-ui .time { width:54px; font-weight:700; text-align:center; color:var(--muted); font-size:14px; min-width:54px; }
+.player-ui input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:10px;
+  background:transparent;
+  cursor:pointer;
+}
+/* track */
+.player-ui input[type="range"]::-webkit-slider-runnable-track{
+  height:8px;
+  border-radius:999px;
+}
+.player-ui input[type="range"]::-moz-range-track{
+  height:8px;background:var(--glass);border-radius:999px;
+}
+
+.player-ui input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  margin-top:-3px;
+  background: var(--player-accent);
+  border: 2px solid var(--player-accent);
+  box-shadow: 0 2px 6px rgba(2,6,23,0.12);
+}
+.player-ui input[type="range"]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;
+  background: var(--player-accent);
+  border: 2px solid var(--player-accent);
+  box-shadow: 0 2px 6px rgba(2,6,23,0.12);
+}
+
+/* explicit light-mode fallback: ensure black thumb when not in dark mode */
+body:not(.dark) .player-ui input[type="range"]::-webkit-slider-thumb{
+  background: #000000;
+  border-color: #000000;
+}
+body:not(.dark) .player-ui input[type="range"]::-moz-range-thumb{
+  background: #000000;
+  border: 2px solid #000000;
+}
+
+/* center controls: prev - play - next */
+.center-controls { display:flex; align-items:center; justify-content:center; gap:24px; margin-top:2px; }
+.play-toggle{
+  width:72px;height:72px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:0;
+  background:var(--player-accent);color:#fff;font-size:28px;box-shadow:0 10px 30px rgba(2,6,23,0.12);cursor:pointer;
+}
+.play-toggle i { font-size:34px; line-height:1; }
+
+.center-controls .icon-btn,
+.playlist .icon-btn {
+  width:52px;
+  height:52px;
+  border-radius:10px;
+  border:1px solid var(--input-border);
+  background: var(--card);
+  color: var(--player-accent);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: var(--card-shadow);
+  cursor:pointer;
+  font-size:20px;
+  transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
+}
+.center-controls .icon-btn i { color: inherit; font-size:22px; }
+
+/* hover/focus affordance */
+.center-controls .icon-btn:hover,
+.center-controls .icon-btn:focus {
+  background: var(--glass);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(2,6,23,0.08);
+}
+
+/* center-controls: prevent prev/next buttons from lifting on hover/focus
+   only disable hover for the specific prev/next buttons, keep other icon-btn hover intact */
+.center-controls #prev-btn,
+.center-controls #next-btn {
+  /* keep base appearance */
+  background: var(--card) !important;
+  color: var(--player-accent) !important;
+  transform: none !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* explicitly neutralize hover/focus states for prev/next */
+.center-controls #prev-btn:hover,
+.center-controls #prev-btn:focus,
+.center-controls #next-btn:hover,
+.center-controls #next-btn:focus {
+  background: var(--card) !important;
+  transform: none !important;
+  outline: none !important;
+}
+
+/* Dark mode: keep visual treatment but use player-accent (which is set to accent in dark mode) */
+body.dark .center-controls .icon-btn,
+body.dark .playlist .icon-btn {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: var(--player-accent);
+}
+/* dark mode: ensure playing track title is white for contrast */
+body.dark .playlist .track.playing .track-title {
+	color: #ffffff;
+}
+
+/* webkit thumb */
+body.dark .player-ui input[type="range"]::-webkit-slider-thumb{
+  background: var(--player-accent) !important;
+  border-color: var(--player-accent) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.28);
+}
+
+/* firefox thumb */
+body.dark .player-ui input[type="range"]::-moz-range-thumb{
+  background: var(--player-accent) !important;
+  border: 2px solid var(--player-accent) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.28);
+}
+
+/* make the play-toggle button white in dark mode, with a dark icon for contrast */
+body.dark .play-toggle {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* ensure small icon buttons show white icons in dark mode */
+body.dark .center-controls .icon-btn,
+body.dark .center-controls .icon-btn i {
+  color: #ffffff !important;
+}
+
+#confetti-btn {
+  background: #000000; 
+  color: #ffffff;     
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, transform .12s ease, box-shadow .12s ease;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  font-weight: 600;
+}
+
+/* Dark theme: invert to white bg with black text */
+body.dark #confetti-btn {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid var(--input-border);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+

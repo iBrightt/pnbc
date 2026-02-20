@@ -1,0 +1,617 @@
+/* hide mobile playlist by default, show on smaller/large-phone screens; hide desktop playlist on those screens */
+.playlist-mobile { display: none; }
+
+/* expanded breakpoint to cover big phones / narrow tablets in portrait */
+@media (max-width: 900px) {
+  .playlist-mobile { display: block; }
+  /* hide the original desktop playlist container to avoid duplicate UI */
+  #playlist-box { display: none !important; }
+
+  /* force a single-column layout for the hero area */
+  .hero { display: flex; flex-direction: column; gap: 1rem; }
+  .hero .left-col,
+  .hero .info { width: 100%; }
+
+  /* small spacing tweak */
+  .hero .left-col { margin-bottom: 0.6rem; }
+}
+
+/* personal messages grid: responsive 4 columns -> auto-fit prevents overflow */
+.personal-message-grid {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* <-- responsive, stays inside container */
+  gap: 12px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* ensure items size correctly and don't force the grid wider than its container */
+.pm-item {
+  box-sizing: border-box;
+  background: var(--glass);
+  border-radius: 8px;
+  padding: 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  transition: transform .08s ease, box-shadow .08s ease;
+  min-width: 0; /* important to allow children to shrink and prevent overflow */
+  border: 1px solid rgba(0,0,0,0.06); /* light default to match existing light theme */
+}
+.pm-item:focus, .pm-item:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); outline:none; border-color: rgba(0,0,0,0.12); }
+
+.pm-avatar {
+  width:48px; height:48px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:#fff; font-size:20px;
+  background: linear-gradient(135deg,#ff9fb3 0%,#ff7aa2 100%);
+  flex-shrink:0;
+}
+.pm-avatar img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
+  display:block;
+}
+.pm-name { font-weight:600; font-size:0.95rem; color:#333; }
+
+/* new class for the preview text so it fits inside the item */
+.pm-preview {
+  font-size:.85rem;
+  color:#666;
+  margin-top:4px;
+  display:block;
+  max-width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-width: 0; /* allow truncation inside flex */
+}
+
+/* Updated modal: reduced backdrop blur (sharper/darker), no internal scrolling, panel grows with content */
+:root{
+  --modal-bg: #ffffff;
+  --backdrop: rgba(0,0,0,0.58); /* stronger, sharper backdrop */
+  --panel-radius: 14px;
+  --panel-padding: 20px;
+  --panel-shadow: 0 20px 50px rgba(4,6,12,0.45);
+  --accent-grad: linear-gradient(135deg,#ff9fb3,#ff7aa2);
+}
+
+/* hidden state for aria-hidden toggling */
+.pm-modal {
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1200;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .18s ease;
+  padding:24px; /* ensure spacing from edges when content grows */
+  /* DO NOT allow the overlay itself to scroll — scroll must happen inside the panel body */
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
+  max-height: 100vh;
+}
+.pm-modal.show { pointer-events:auto; opacity:1; }
+
+/* backdrop: keep sharp, slightly darker, no blur for better legibility */
+.pm-modal-backdrop {
+  position:absolute;
+  inset:0;
+  background:var(--backdrop);
+  opacity:0;
+  transition:opacity .18s ease;
+  /* removed backdrop-filter for crisper appearance */
+}
+.pm-modal.show .pm-modal-backdrop { opacity:1; }
+
+/* panel: allow it to size to content but constrain height so internal scroll is possible */
+.pm-modal-panel {
+  position:relative;
+  z-index:2;
+  width: min(720px, 96%);
+  max-width: 720px;
+  background: var(--modal-bg);
+  border-radius: var(--panel-radius);
+  padding: var(--panel-padding);
+  box-shadow: var(--panel-shadow);
+  transform: translateY(6px) scale(.996);
+  opacity:0;
+  transition: transform .22s cubic-bezier(.2,.9,.3,1), opacity .18s ease;
+  overflow: hidden; /* hide overflowing edges; internal container will scroll */
+  display:flex;
+  flex-direction:column;
+  max-height: calc(100vh - 48px); /* ensure it never exceeds viewport leaving room for padding */
+}
+
+/* When content overflows, allow the panel to scroll internally */
+.pm-modal-panel .pm-modal-body {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(100vh - 180px); /* leave room for header / padding; adjusts naturally on larger viewports */
+  padding-right: 6px; /* small space for potential scrollbar */
+}
+
+/* visible state: lift & fade in */
+.pm-modal.show .pm-modal-panel { transform: translateY(0) scale(1); opacity:1; }
+
+/* focus styles */
+.pm-modal-panel :focus { outline: none; }
+.pm-modal-panel :focus-visible { box-shadow: 0 0 0 3px rgba(255,123,160,0.14); border-radius:8px; }
+
+/* close button: circular, subtle background, hover ring */
+.pm-modal-close {
+  position:absolute;
+  right:12px;
+  top:12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: var(--glass);
+  font-size:20px;
+  cursor:pointer;
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  transition: background .12s ease, transform .08s ease, color .12s ease, box-shadow .08s ease;
+  color:#444;
+  background-clip: padding-box;
+}
+.pm-modal-close:hover {
+  background: rgba(0,0,0,0.04);
+  transform:translateY(-1px);
+  color:#111;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.pm-modal-close:focus-visible {
+  box-shadow:0 0 0 4px rgba(255,123,160,0.12);
+  outline:none;
+}
+
+/* Dark-mode border & hover contrast tweaks */
+body.dark .pm-modal-close {
+  color: var(--muted);
+  border-color: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+body.dark .pm-modal-close:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+/* header inside modal */
+.pm-modal-header { display:flex; gap:14px; align-items:center; margin-bottom:8px; }
+.pm-modal-avatar {
+  width:76px; height:76px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:34px; color:#fff; background:var(--accent-grad);
+  flex-shrink:0; box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+}
+.pm-modal-avatar img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:12px;
+  display:block;
+}
+.pm-modal-title { margin:0; font-size:1.05rem; font-weight:800; color:#111; }
+
+/* message body: allow content to expand rather than scroll */
+.pm-modal-body {
+  margin-top:10px;
+  color:#222;
+  line-height:1.6;
+  overflow: visible; /* no internal scrolling */
+  padding-right:0;
+}
+.pm-modal-body .pm-message-content {
+  max-height: none;
+  overflow: visible;
+}
+
+/* decorative dropcap */
+.pm-dropcap {
+  float:left; font-size:48px; line-height:1; font-weight:900; margin-right:12px; color:#ff6b94;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+.pm-message-content { overflow: visible; }
+
+/* Hide decorative dropcap when modal is shown and ensure content uses full width */
+.pm-modal .pm-dropcap {
+  display: none !important;
+}
+
+/* Ensure the message content doesn't leave space for the hidden float */
+.pm-modal .pm-message-content {
+  float: none !important;
+  margin: 0 !important;
+  padding: 12px !important;             /* give inner spacing for the border */
+  border: 1px solid rgba(0,0,0,0.06);   /* subtle border inside the modal */
+  border-radius: 8px;                   /* rounded corners to match panel */
+  background: var(--glass) !important;                    /* ensure contrast against backdrop */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); /* gentle inner highlight */
+  overflow: visible;
+}
+
+/* Mobile: bottom-sheet look but still enable internal scroll when necessary */
+@media (max-width: 900px) {
+  /* Center modal on viewports <= 900px instead of bottom-sheet */
+  .pm-modal { 
+    align-items:center; 
+    justify-content:center; 
+    padding:12px; 
+  }
+  .pm-modal-panel {
+    width: min(680px, 96%);
+    max-width: 96%;
+    border-radius: 12px;
+    padding:16px;
+    transform: translateY(0) scale(1);
+    overflow: hidden;
+    max-height: calc(100vh - 48px); /* keep room for padding and allow internal scroll */
+  }
+
+  /* ensure the scrollable body area on mobile uses more of the panel */
+  .pm-modal-panel .pm-modal-body {
+    max-height: calc(100vh - 160px);
+  }
+}
+
+/* keep the tighter mobile rules for very small devices but center too */
+@media (max-width: 520px) {
+  .pm-modal { 
+    align-items:center; 
+    justify-content:center; 
+    padding:10px; 
+  }
+  .pm-modal-panel {
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
+    border-radius: 12px;
+    padding:14px;
+    transform: translateY(0) scale(1);
+    overflow: hidden;
+    max-height: calc(100vh - 36px);
+  }
+  .pm-dropcap { font-size:40px; }
+  .pm-modal-close { right:10px; top:8px; width:34px; height:34px; }
+  .pm-modal-panel .pm-modal-body { max-height: calc(100vh - 120px); }
+}
+
+/* Prevent the background from scrolling when modal is open (kept for compatibility) */
+body.pm-modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Scrollbar styling for modal body (light and subtle) */
+.pm-modal-panel .pm-modal-body::-webkit-scrollbar { width:10px; height:10px; }
+.pm-modal-panel .pm-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.08);
+  border-radius:6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.pm-modal-panel .pm-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Dark-mode overrides for timeline messages, personal messages, and the PM modal
+   Use the same theme variables already set in style.css (body.dark) so colors match. */
+body.dark .timeline-container,
+body.dark .personal-message-container,
+body.dark .messages,
+body.dark .messagescontainer.left,
+body.dark .pm-item,
+body.dark .msg {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--input-border) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45) !important;
+}
+
+/* personal message item specifics */
+body.dark .pm-item { 
+  background: var(--glass) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+body.dark .pm-name { color: var(--text) !important; }
+body.dark .pm-preview { color: var(--muted) !important; }
+body.dark .pm-avatar { 
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+  color: #fff;
+}
+
+/* modal backdrop/panel/body */
+body.dark .pm-modal-backdrop {
+  background: rgba(0,0,0,0.68); /* slightly darker backdrop for legibility */
+}
+body.dark .pm-modal-panel {
+  background: #111111;
+  color: var(--text);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+
+/* modal header/avatar/title/text */
+body.dark .pm-modal-avatar {
+  background: var(--accent-grad);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+}
+body.dark .pm-modal-title,
+body.dark .pm-modal-body,
+body.dark #pm-modal-text {
+  color: var(--text);
+}
+
+/* modal inner message content (overrides light-mode white) */
+body.dark .pm-modal .pm-message-content {
+  background: var(--card);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  color: var(--text);
+}
+
+/* close button contrast tweaks */
+body.dark .pm-modal-close {
+  color: var(--muted);
+}
+body.dark .pm-modal-close:hover {
+  color: var(--text);
+}
+
+/* Ensure decorative dropcap remains hidden in modal even in dark mode */
+body.dark .pm-modal .pm-dropcap {
+  display: none !important;
+}
+
+/* Backdrop blur when modal is shown — panel stays crisp because it uses a higher z-index */
+.pm-modal-backdrop {
+  /* ensure backdrop sits behind the panel but above page content */
+  z-index: 1;
+  will-change: opacity, backdrop-filter;
+  transition: opacity .18s ease, backdrop-filter .18s ease;
+  /* keep the existing background variable (var(--backdrop)) for color; blur will be applied when visible */
+  background: var(--backdrop);
+  /* no blur by default */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* when modal is visible, add a subtle blur to the backdrop */
+.pm-modal.show .pm-modal-backdrop {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: 1;
+}
+
+/* === ADDED: ensure <video> inside message content is visible and responsive === */
+.pm-message-content video,
+.pm-message-content video::-webkit-media-controls {
+  display: block;
+}
+
+.pm-message-content video {
+  width: 100%;
+  height: auto;
+  max-height: 60vh;           /* keep videos from overflowing very tall content */
+  object-fit: contain;        /* preserve aspect ratio, show letterbox if needed */
+  border-radius: 8px;         /* match message content corners */
+  background: #000;           /* black background for media area */
+  outline: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* On very small viewports reduce max-height */
+@media (max-width: 520px) {
+  .pm-message-content video { max-height: 45vh; }
+}
+
+/* Add border and card styling to each personal-message group */
+.pm-group {
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* tighten spacing for the group's header so content sits nicely inside the card */
+.pm-group .messages-header {
+  margin-bottom: 8px;
+}
+
+/* Dark-mode override: use existing theme vars so group matches the rest of the UI */
+body.dark .pm-group {
+  background: var(--card) !important;
+  border-color: var(--input-border) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+
+/* TIMELINE: left vertical line + dots beside each message */
+.timeline-container {
+  position: relative;
+  padding-left: 56px; /* space for line + dots */
+}
+
+/* vertical line that runs along the left side of the timeline
+   moved slightly left so the dot sits a bit closer to the edge */
+.timeline-container::before {
+  content: "";
+  position: absolute;
+  left: 22px; /* moved left from 28px -> closer to container edge */
+  top: 16px;
+  bottom: 16px;
+  width: 2px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+/* each message gets relative positioning so its dot can be positioned */
+.timeline-container .msg {
+  position: relative;
+  margin-bottom: 18px;
+  z-index: 1; /* above the vertical line */
+  /* ensure message content does not overlap the dot - put dot in the gutter outside the message */
+  padding-left: 0;
+}
+
+/* small dot for regular messages (placed outside the message box in the left gutter)
+   centered vertically using transform */
+.timeline-container .msg::before {
+  content: "";
+  position: absolute;
+  /* centered on the vertical line: (22 - 56) - (12/2) = -40px */
+  left: -41.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0,0,0,0.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+  transition: transform .12s ease, background .12s ease, width .12s ease, height .12s ease;
+}
+
+/* hover with mouse and keyboard focus for accessibility when an element inside .msg receives focus */
+.timeline-container .msg:not(.latest):hover::before,
+.timeline-container .msg:not(.latest):focus-within::before {
+  background: var(--text);                     /* subtle accent on hover */
+  border-color: rgba(0,0,0,0.18);
+  box-shadow: 0 8px 22px rgba(255,122,160,0.12);
+}
+
+/* dark-mode hover variant */
+body.dark .timeline-container .msg:not(.latest):hover::before,
+body.dark .timeline-container .msg:not(.latest):focus-within::before {
+  background: var(--toggle-knob);
+  border-color: var(--input-border);
+  box-shadow: 0 8px 26px rgba(255,123,160,0.06);
+}
+
+/* latest (newest) message: bigger filled dot (also placed in the gutter)
+   centered vertically like the regular dot */
+.timeline-container .msg.latest::before {
+  width: 18px;
+  height: 18px;
+  /* centered on the vertical line: (22 - 56) - (18/2) = -43px */
+  left: -43px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111;
+  border: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* dark mode adjustments so line/dots match theme variables */
+body.dark .timeline-container::before {
+  background: rgba(255,255,255,0.06);
+}
+body.dark .timeline-container .msg::before {
+  background: var(--bg);
+  border: 2px solid var(--input-border);
+  box-shadow: none;
+}
+body.dark .timeline-container .msg.latest::before {
+  background: var(--text);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+
+/* smaller viewports: adjust spacing so timeline still fits */
+@media (max-width: 520px) {
+  .timeline-container { padding-left: 46px; }
+  .timeline-container::before { left: 20px; } /* small shift for mobile */
+  /* centered on the mobile vertical line: (20 - 46) - (10/2) = -31px */
+  .timeline-container .msg::before { left: -31px; width:10px; height:10px; top:50%; transform:translateY(-50%); }
+  /* latest mobile: (20 - 46) - (14/2) = -33px */
+  .timeline-container .msg.latest::before { width:14px; height:14px; left:-33px; top:50%; transform:translateY(-50%); }
+}
+
+/* Add extra inner space for messages on the All Timeline page only.
+   Scoped to .messages.timeline-container so index.php (.timeline-simple) is unaffected. */
+.messages.timeline-container .msg {
+  padding: 18px 14px; /* larger internal spacing for clarity */
+  border-radius: 10px; /* keep visual consistency with containers */
+  /* ensure the hover lift uses the same subtle transform already defined */
+  transition: transform .12s ease, box-shadow .12s ease, padding .12s ease;
+}
+
+/* small spacing tweak inside the message body for better vertical rhythm */
+.messages.timeline-container .msg .meta {
+  margin-bottom: 8px;
+}
+.messages.timeline-container .msg .text {
+  margin-top: 6px;
+}
+
+/* media container inside the personal-message modal */
+#pm-modal-media {
+  display: none; /* toggled by JS */
+  text-align: center;
+  margin-top: 0.75rem; /* place spacing above when video sits below message */
+}
+
+/* responsive video: fit into modal, not exceed viewport height */
+#pm-modal-media video {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  max-height: calc(70vh - 80px); /* leave space for header/footer in modal */
+  object-fit: contain;
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  display: inline-block;
+}
+
+/* slightly larger max height on wide screens */
+@media (min-width: 900px) {
+  #pm-modal-media video {
+    max-height: calc(75vh - 100px);
+    width: 720px;
+    max-width: 100%;
+  }
+}
+
+/* ensure modal panel can scroll when content tall */
+#pm-modal .pm-modal-panel {
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* Playlist track cover image styles */
+.track-cover {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.track-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.track-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #eee;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 4px;
+}
